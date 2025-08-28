@@ -1,3 +1,4 @@
+// components/pokemon/PokemonList.tsx
 import React, { useMemo, useState } from 'react';
 import {
   SafeAreaView,
@@ -29,7 +30,6 @@ export const PokemonList: React.FC<PokemonListProps> = ({
   const [showSortMenu, setShowSortMenu] = useState(false);
 
   const windowWidth = Dimensions.get('window').width;
-  const numColumns = windowWidth > 800 ? 4 : 2; // responsive columns
 
   const filteredAndSortedPokemon = useMemo(() => {
     const filtered = filterPokemon(pokemonList, searchQuery);
@@ -37,6 +37,9 @@ export const PokemonList: React.FC<PokemonListProps> = ({
   }, [pokemonList, searchQuery, sortBy]);
 
   const toggleSortMenu = () => setShowSortMenu((prev) => !prev);
+
+  // largeur pour 3 colonnes avec marges
+  const cardWidth = (windowWidth - 32 - 2 * 16) / 3;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -75,14 +78,9 @@ export const PokemonList: React.FC<PokemonListProps> = ({
 
         <ScrollView contentContainerStyle={styles.pokemonGrid}>
           {filteredAndSortedPokemon.map((pokemon) => (
-            <PokemonCard
-              key={pokemon.id}
-              pokemon={pokemon}
-              onPress={onPokemonSelect}
-              cardWidth={
-                (windowWidth - 32 - (numColumns - 1) * 16) / numColumns
-              }
-            />
+            <View key={pokemon.id} style={{ width: cardWidth, marginBottom: 16 }}>
+              <PokemonCard pokemon={pokemon} onPress={onPokemonSelect} />
+            </View>
           ))}
         </ScrollView>
       </View>
@@ -142,6 +140,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
+    marginEnd: 15,
     paddingBottom: 20,
   },
 });
