@@ -1,6 +1,13 @@
-// components/pokemon/PokemonList.tsx
 import React, { useMemo, useState } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  Dimensions,
+  Platform,
+} from 'react-native';
 import { Pokemon, SortBy } from '../../types/pokemon';
 import { filterPokemon, sortPokemon } from '../../utils/pokemon';
 import { UI_CONFIG } from '../../constants/pokemon';
@@ -13,22 +20,23 @@ interface PokemonListProps {
   onPokemonSelect: (pokemon: Pokemon) => void;
 }
 
-export const PokemonList: React.FC<PokemonListProps> = ({ 
-  pokemonList, 
-  onPokemonSelect 
+export const PokemonList: React.FC<PokemonListProps> = ({
+  pokemonList,
+  onPokemonSelect,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortBy>('number');
   const [showSortMenu, setShowSortMenu] = useState(false);
+
+  const windowWidth = Dimensions.get('window').width;
+  const numColumns = windowWidth > 800 ? 4 : 2; // responsive columns
 
   const filteredAndSortedPokemon = useMemo(() => {
     const filtered = filterPokemon(pokemonList, searchQuery);
     return sortPokemon(filtered, sortBy);
   }, [pokemonList, searchQuery, sortBy]);
 
-  const toggleSortMenu = () => {
-    setShowSortMenu(!showSortMenu);
-  };
+  const toggleSortMenu = () => setShowSortMenu((prev) => !prev);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -48,10 +56,15 @@ export const PokemonList: React.FC<PokemonListProps> = ({
         />
       </View>
 
-      {/* Content */}
+      {/* Sort + Grid */}
       <View style={styles.content}>
-        {/* Sort Menu */}
-        <View style={styles.sortContainer}>
+        {/* SortMenu au-dessus du scroll */}
+        <View
+          style={[
+            styles.sortWrapper,
+            Platform.OS === 'web' && { position: 'sticky', top: 0, zIndex: 10 },
+          ]}
+        >
           <SortMenu
             sortBy={sortBy}
             onSortChange={setSortBy}
@@ -60,17 +73,17 @@ export const PokemonList: React.FC<PokemonListProps> = ({
           />
         </View>
 
-        {/* Pokemon Grid */}
-        <ScrollView style={styles.pokemonGrid}>
-          <View style={styles.pokemonRow}>
-            {filteredAndSortedPokemon.map((pokemon) => (
-              <PokemonCard
-                key={pokemon.id}
-                pokemon={pokemon}
-                onPress={onPokemonSelect}
-              />
-            ))}
-          </View>
+        <ScrollView contentContainerStyle={styles.pokemonGrid}>
+          {filteredAndSortedPokemon.map((pokemon) => (
+            <PokemonCard
+              key={pokemon.id}
+              pokemon={pokemon}
+              onPress={onPokemonSelect}
+              cardWidth={
+                (windowWidth - 32 - (numColumns - 1) * 16) / numColumns
+              }
+            />
+          ))}
         </ScrollView>
       </View>
     </SafeAreaView>
@@ -117,19 +130,15 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingTop: 20,
-  },
-  sortContainer: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    paddingHorizontal: 20,
-    marginBottom: 16,
-    position: 'relative',
-  },
-  pokemonGrid: {
-    flex: 1,
     paddingHorizontal: 16,
   },
-  pokemonRow: {
+  sortWrapper: {
+    marginBottom: 16,
+    alignItems: 'flex-end',
+    backgroundColor: UI_CONFIG.COLORS.WHITE,
+    paddingVertical: 8,
+  },
+  pokemonGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',

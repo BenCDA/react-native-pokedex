@@ -34,16 +34,7 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      [
-        "expo-font",
-        {
-          "fonts": [
-            "./assets/fonts/MyFont-Regular.ttf",
-            "./assets/fonts/MyFont-Bold.ttf"
-          ]
-        }
-      ],
-      "expo-localization"
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true
