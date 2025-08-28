@@ -33,6 +33,15 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
+      ],
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/MyFont-Regular.ttf",
+            "./assets/fonts/MyFont-Bold.ttf"
+          ]
+        }
       ]
     ],
     "experiments": {
