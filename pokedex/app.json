@@ -42,7 +42,8 @@
             "./assets/fonts/MyFont-Bold.ttf"
           ]
         }
-      ]
+      ],
+      "expo-localization"
     ],
     "experiments": {
       "typedRoutes": true

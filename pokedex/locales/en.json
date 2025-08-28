@@ -1,0 +1,7 @@
+{
+  "app_name": "Pokedex",
+  "search_placeholder": "Search a Pokémon...",
+  "loading": "Loading...",
+  "error": "An error occurred",
+  "type": "Type"
+}
