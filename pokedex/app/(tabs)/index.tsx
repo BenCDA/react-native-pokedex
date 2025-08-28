@@ -1,34 +1,39 @@
 import React, { useState, useEffect } from 'react';
-import { View, TouchableOpacity, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { Pokemon, ViewType } from '../../types/pokemon';
 import { usePokemonList } from '../../hooks/usePokemonList';
 import { LoadingScreen } from '../../components/common/LoadingScreen';
 import { PokemonList } from '../../components/pokemon/PokemonList';
 import { PokemonDetail } from '../../components/pokemon/PokemonDetail';
-
-const { width } = Dimensions.get('window');
+import { UI_CONFIG } from '../../constants/pokemon';
 
 const translations: Record<'en' | 'fr', Record<string, string>> = {
-  en: { switchLang: 'Switch to French', back: 'Back' },
-  fr: { switchLang: 'Changer en anglais', back: 'Retour' },
+  en: { switchLang: 'Switch to French' },
+  fr: { switchLang: 'Changer en anglais' },
 };
 
 const PokedexApp: React.FC = () => {
   const [locale, setLocale] = useState<'en' | 'fr'>('en');
-  const { pokemonList, loading, refetch } = usePokemonList(locale); 
+  const { pokemonList, loading, refetch } = usePokemonList(locale);
   const [currentView, setCurrentView] = useState<ViewType>('list');
   const [selectedPokemon, setSelectedPokemon] = useState<Pokemon | null>(null);
 
   const t = (key: string) => translations[locale][key] || key;
 
-  // Recharge la liste à chaque changement de langue
+  // Recharger la liste quand la langue change
   useEffect(() => {
     refetch(locale);
   }, [locale]);
 
-  const toggleLanguage = () => {
-    setLocale(prev => (prev === 'fr' ? 'en' : 'fr'));
-  };
+  // Mettre à jour le Pokémon sélectionné quand la langue change
+  useEffect(() => {
+    if (selectedPokemon && pokemonList.length > 0) {
+      const updated = pokemonList.find(p => p.id === selectedPokemon.id);
+      if (updated) setSelectedPokemon(updated);
+    }
+  }, [locale, pokemonList]);
+
+  const toggleLanguage = () => setLocale(prev => (prev === 'fr' ? 'en' : 'fr'));
 
   const handlePokemonSelect = (pokemon: Pokemon) => {
     setSelectedPokemon(pokemon);
@@ -54,51 +59,53 @@ const PokedexApp: React.FC = () => {
 
   if (loading) return <LoadingScreen />;
 
-  const LanguageButton = () => (
-    <TouchableOpacity style={styles.floatingButton} onPress={toggleLanguage}>
-      <Text style={styles.buttonText}>{t('switchLang')}</Text>
-    </TouchableOpacity>
-  );
-
   return (
     <View style={{ flex: 1 }}>
-      <LanguageButton />
       {currentView === 'detail' && selectedPokemon ? (
         <PokemonDetail
           pokemon={selectedPokemon}
           pokemonList={pokemonList}
           onBack={handleBackToList}
           onNavigate={handlePokemonNavigation}
+          locale={locale}
         />
       ) : (
-        <PokemonList pokemonList={pokemonList} onPokemonSelect={handlePokemonSelect} />
+        <PokemonList
+          pokemonList={pokemonList}
+          onPokemonSelect={handlePokemonSelect}
+          locale={locale}
+        />
       )}
+
+      {/* Bouton global pour changer la langue */}
+      <TouchableOpacity style={styles.floatingButton} onPress={toggleLanguage}>
+        <Text style={styles.buttonText}>{t('switchLang')}</Text>
+      </TouchableOpacity>
     </View>
   );
 };
 
+export default PokedexApp;
+
 const styles = StyleSheet.create({
   floatingButton: {
-  position: 'absolute',
-  bottom: 20,
-  right: 20,
-  backgroundColor: '#FFCB05',
-  paddingVertical: 10,
-  paddingHorizontal: 14,
-  borderRadius: 30,
-  zIndex: 1000,
-  shadowColor: '#000',
-  shadowOffset: { width: 0, height: 3 },
-  shadowOpacity: 0.3,
-  shadowRadius: 4,
-  elevation: 5,
-},
-
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    backgroundColor: '#FFCB05',
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 30,
+    zIndex: 1000,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
   buttonText: {
     color: '#3B4CCA',
     fontWeight: 'bold',
     fontSize: 14,
   },
 });
-
-export default PokedexApp;

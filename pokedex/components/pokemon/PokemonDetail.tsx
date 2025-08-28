@@ -1,6 +1,7 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View, Animated } from 'react-native';
 import { Pokemon } from '../../types/pokemon';
+import { Audio } from 'expo-av';
 import { 
   formatPokemonName, 
   getPokemonDescription, 
@@ -34,10 +35,10 @@ const StatBar: React.FC<StatBarProps> = ({ label, value, color }) => {
         <Animated.View
           style={[
             statStyles.fill,
-            { 
+            {
               width: widthAnim.interpolate({ inputRange: [0, 100], outputRange: ['0%', '100%'] }),
-              backgroundColor: color
-            }
+              backgroundColor: color,
+            },
           ]}
         />
       </View>
@@ -58,17 +59,36 @@ interface PokemonDetailProps {
   onBack: () => void;
   onNavigate: (direction: 'prev' | 'next') => void;
   locale: 'en' | 'fr';
-  toggleLanguage: () => void;
 }
 
-export const PokemonDetail: React.FC<PokemonDetailProps> = ({ 
-  pokemon, 
-  pokemonList,
-  onBack, 
-  onNavigate,
-  locale,
-  toggleLanguage
-}) => {
+export const PokemonDetail: React.FC<PokemonDetailProps> = ({ pokemon, onBack, onNavigate }) => {
+  const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const [isMuted, setIsMuted] = useState(false);
+
+  // Jouer le cri à l'ouverture
+  useEffect(() => {
+    const playCry = async () => {
+      try {
+        const { sound: s } = await Audio.Sound.createAsync(
+          { uri: `https://play.pokemonshowdown.com/audio/cries/${pokemon.name}.mp3` }
+        );
+        setSound(s);
+        if (!isMuted) await s.playAsync();
+      } catch (err) {
+        console.log('Erreur lecture cri Pokémon:', err);
+      }
+    };
+    playCry();
+
+    return () => { sound && sound.unloadAsync(); };
+  }, [pokemon, isMuted]);
+
+  const toggleMute = async () => {
+    if (!sound) return;
+    setIsMuted(prev => !prev);
+    isMuted ? await sound.playAsync() : await sound.pauseAsync();
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: pokemon.color }]}>
       {/* Header */}
@@ -80,7 +100,7 @@ export const PokemonDetail: React.FC<PokemonDetailProps> = ({
         <Text style={styles.number}>#{pokemon.number}</Text>
       </View>
 
-      {/* Navigation Pokémon */}
+      {/* Navigation */}
       <View style={styles.pokemonNavigation}>
         <TouchableOpacity onPress={() => onNavigate('prev')}>
           <Text style={styles.navButton}>‹</Text>
@@ -95,19 +115,30 @@ export const PokemonDetail: React.FC<PokemonDetailProps> = ({
         </TouchableOpacity>
       </View>
 
+      {/* Bouton mute/unmute */}
+      <TouchableOpacity style={styles.muteButton} onPress={toggleMute}>
+        <Text style={{ color: '#fff', fontWeight: 'bold' }}>{isMuted ? '🔇' : '🔊'}</Text>
+      </TouchableOpacity>
+
       {/* Détails */}
       <View style={styles.detailCard}>
         <ScrollView showsVerticalScrollIndicator={false}>
+          {/* Types */}
           <View style={styles.typesContainer}>
             {pokemon.types.map((type, index) => (
-              <View key={index} style={[styles.typeTag, { backgroundColor: TYPE_COLORS[type as keyof typeof TYPE_COLORS] }]}>
+              <View
+                key={index}
+                style={[styles.typeTag, { backgroundColor: TYPE_COLORS[type as keyof typeof TYPE_COLORS] }]}
+              >
                 <Text style={styles.typeText}>{formatPokemonName(type)}</Text>
               </View>
             ))}
           </View>
 
+          {/* About */}
           <Text style={[styles.sectionTitle, { color: pokemon.color }]}>About</Text>
 
+          {/* Statistiques physiques */}
           <View style={styles.physicalStats}>
             <View style={styles.physicalStatItem}>
               <View style={styles.physicalStatValue}>
@@ -129,20 +160,16 @@ export const PokemonDetail: React.FC<PokemonDetailProps> = ({
             </View>
           </View>
 
+          {/* Description */}
           <Text style={styles.description}>{getPokemonDescription(pokemon)}</Text>
 
+          {/* Stats */}
           <Text style={[styles.sectionTitle, { color: pokemon.color }]}>Base Stats</Text>
-
           {pokemon.stats.map((stat, index) => (
             <StatBar key={index} label={stat.stat.name.toUpperCase().replace('-', '')} value={stat.base_stat} color={pokemon.color} />
           ))}
         </ScrollView>
       </View>
-
-      {/* Bouton flottant de langue */}
-      <TouchableOpacity style={styles.floatingButton} onPress={toggleLanguage}>
-        <Text style={styles.buttonText}>{locale === 'fr' ? 'Changer en anglais' : 'Switch to French'}</Text>
-      </TouchableOpacity>
     </SafeAreaView>
   );
 };
@@ -156,6 +183,7 @@ const styles = StyleSheet.create({
   pokemonNavigation: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 20 },
   navButton: { color: UI_CONFIG.COLORS.WHITE, fontSize: 32, fontWeight: 'bold' },
   pokemonImage: { width: 200, height: 200 },
+  muteButton: { position: 'absolute', top: 180, right: 30, backgroundColor: '#3B4CCA', padding: 10, borderRadius: 20, zIndex: 100 },
   detailCard: { flex: 1, backgroundColor: UI_CONFIG.COLORS.WHITE, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20 },
   typesContainer: { flexDirection: 'row', justifyContent: 'center', marginBottom: 20 },
   typeTag: { paddingHorizontal: 16, paddingVertical: 6, borderRadius: 20, marginHorizontal: 4 },
@@ -169,20 +197,4 @@ const styles = StyleSheet.create({
   weightIcon: { marginRight: 4, fontSize: 16 },
   heightIcon: { marginRight: 4, fontSize: 16 },
   description: { color: UI_CONFIG.COLORS.GRAY, lineHeight: 20, marginBottom: 24, textAlign: 'center' },
-  floatingButton: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    backgroundColor: '#FFCB05',
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 30,
-    zIndex: 1000,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  buttonText: { color: '#3B4CCA', fontWeight: 'bold', fontSize: 14 },
 });
