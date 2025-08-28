@@ -1,5 +1,6 @@
+// app/(tabs)/index.tsx
 import React, { useState, useEffect } from 'react';
-import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { SafeAreaView, View, TouchableOpacity, Text, StyleSheet, Image } from 'react-native';
 import { Pokemon, ViewType } from '../../types/pokemon';
 import { usePokemonList } from '../../hooks/usePokemonList';
 import { LoadingScreen } from '../../components/common/LoadingScreen';
@@ -8,8 +9,8 @@ import { PokemonDetail } from '../../components/pokemon/PokemonDetail';
 import { UI_CONFIG } from '../../constants/pokemon';
 
 const translations: Record<'en' | 'fr', Record<string, string>> = {
-  en: { switchLang: 'Switch to French' },
-  fr: { switchLang: 'Changer en anglais' },
+  en: { switchLang: 'FR' },
+  fr: { switchLang: 'EN' },
 };
 
 const PokedexApp: React.FC = () => {
@@ -60,7 +61,7 @@ const PokedexApp: React.FC = () => {
   if (loading) return <LoadingScreen />;
 
   return (
-    <View style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: UI_CONFIG.COLORS.PRIMARY }}>
       {currentView === 'detail' && selectedPokemon ? (
         <PokemonDetail
           pokemon={selectedPokemon}
@@ -77,11 +78,15 @@ const PokedexApp: React.FC = () => {
         />
       )}
 
-      {/* Bouton global pour changer la langue */}
+      {/* Bouton global pour changer la langue (Pokéball style) */}
       <TouchableOpacity style={styles.floatingButton} onPress={toggleLanguage}>
-        <Text style={styles.buttonText}>{t('switchLang')}</Text>
+        <View style={styles.pokeball}>
+          <View style={styles.pokeballInner}>
+            <Text style={styles.buttonText}>{t('switchLang')}</Text>
+          </View>
+        </View>
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -92,19 +97,28 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 20,
     right: 20,
-    backgroundColor: '#FFCB05',
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 30,
     zIndex: 1000,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 5,
+  },
+  pokeball: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: '#FF1C1C',
+    borderWidth: 4,
+    borderColor: '#000',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  pokeballInner: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#FFF',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   buttonText: {
-    color: '#3B4CCA',
+    color: '#FF1C1C',
     fontWeight: 'bold',
     fontSize: 14,
   },

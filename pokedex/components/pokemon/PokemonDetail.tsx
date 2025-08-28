@@ -2,12 +2,12 @@ import React, { useRef, useEffect, useState } from 'react';
 import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View, Animated } from 'react-native';
 import { Pokemon } from '../../types/pokemon';
 import { Audio } from 'expo-av';
-import { 
-  formatPokemonName, 
-  getPokemonDescription, 
-  formatPokemonWeight, 
+import {
+  formatPokemonName,
+  getPokemonDescription,
+  formatPokemonWeight,
   formatPokemonHeight,
-  formatPokemonAbilities 
+  formatPokemonAbilities
 } from '../../utils/pokemon';
 import { TYPE_COLORS, UI_CONFIG } from '../../constants/pokemon';
 
@@ -183,8 +183,18 @@ const styles = StyleSheet.create({
   pokemonNavigation: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 20 },
   navButton: { color: UI_CONFIG.COLORS.WHITE, fontSize: 32, fontWeight: 'bold' },
   pokemonImage: { width: 200, height: 200 },
-  muteButton: { position: 'absolute', top: 180, right: 30, backgroundColor: '#3B4CCA', padding: 10, borderRadius: 20, zIndex: 100 },
-  detailCard: { flex: 1, backgroundColor: UI_CONFIG.COLORS.WHITE, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20 },
+  muteButton: {
+    position: 'absolute',
+    top: 180,
+    right: 30,
+    width: 60,
+    height: 60,
+    backgroundColor: 'white', borderRadius: 30,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 100,
+  }, detailCard: { flex: 1, backgroundColor: UI_CONFIG.COLORS.WHITE, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20 },
   typesContainer: { flexDirection: 'row', justifyContent: 'center', marginBottom: 20 },
   typeTag: { paddingHorizontal: 16, paddingVertical: 6, borderRadius: 20, marginHorizontal: 4 },
   typeText: { color: UI_CONFIG.COLORS.WHITE, fontWeight: '600', fontSize: 12 },
